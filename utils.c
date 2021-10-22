@@ -13,3 +13,9 @@ void log_info(const char *file_name, const char *function_name, size_t line, con
     fflush(stdout);
 #endif
 }
+
+
+uint32_t min(uint32_t x, uint32_t y) { return x < y ? x : y; }
+
+uint32_t max(uint32_t x, uint32_t y) { return x > y ? x : y; }
+

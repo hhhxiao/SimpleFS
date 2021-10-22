@@ -4,7 +4,7 @@
 
 #include "io.h"
 #include <stdio.h>
-
+#include <assert.h>
 
 inode_pointer_t *inode_get_pointer(inode_t *inode, uint32_t index, disk_t *disk) {
     if (inode == NULL || disk == NULL || index < 0) {
@@ -29,7 +29,7 @@ inode_pointer_t *inode_get_pointer(inode_t *inode, uint32_t index, disk_t *disk)
         inode_pointer_t *inode_table = block_to_inode_poiner_list(block);
         return inode_table + index;
     }
-    s
+
     max_used_block += MAX_BLOCK_DIRECT;
     if (index < max_used_block) {
         index -= (MAX_BLOCK_DIRECT + MAX_BLOCK_SIGNY);
@@ -62,12 +62,16 @@ uint32_t inode_get_block(inode_t *inode, uint32_t index, disk_t *disk) {
         return *p;
     }
 }
-s
+
+
+uint32_t inode_get_last_block(inode_t *inode, disk_t *disk) {
+    return inode_get_block(inode, inode->block_used - 1, disk);
+}
+
 uint32_t inode_add_new_block(inode_t *inode, disk_t *disk) {
     if (inode == NULL) {
         return -1;
     }
-
     inode_pointer_t *p = inode_get_pointer(inode, inode->block_used + 1, disk);
     if (p == NULL) {
         return -1;
@@ -84,4 +88,38 @@ uint32_t inode_add_new_block(inode_t *inode, disk_t *disk) {
     inode->block_used++;
     disk->sb.free_b_cnt--;
     return block_id;
+}
+
+int inode_write_content(inode_t *inode, disk_t *disk, const byte_t *byte, size_t len) {
+    if (inode == NULL || disk == NULL) {
+        return -1;
+    }
+    const static size_t max_file_size =
+            (MAX_BLOCK_DIRECT +
+             MAX_BLOCK_SIGNY * INODE_PTR_NUM_IN_BLOCK +
+             MAX_BLOCK_DOUBLY * INODE_PTR_NUM_IN_BLOCK * INODE_PTR_NUM_IN_BLOCK) * DATA_BLOCK_SIZE;
+    if (len + inode->file_size > max_file_size) {
+        ERR("content is too large to write\n");
+        return -2;
+    }
+
+    int write_len = 0;
+    int last_block_idx = (int) inode_get_last_block(inode, disk);
+    //一个块都没分配
+    if (last_block_idx == -1) {
+        last_block_idx = (int) inode_add_new_block(inode, disk);
+    }
+    while (write_len < len) {
+        LOG("%d", last_block_idx);
+        data_block_t *last_block = disk_fetch_block(disk, last_block_idx);
+        assert(last_block != NULL);
+        //向数据块写数据
+        write_len += block_write_content(last_block, byte + write_len, len - write_len);
+        last_block_idx = (int) inode_add_new_block(inode, disk);
+        if (last_block_idx == -1) {
+            ERR("disk space is not enough");
+            return false;
+        }
+    }
+    return true;
 }

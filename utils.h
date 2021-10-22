@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>
+
 #define DEBUG 1
 #ifdef WIN32
 #define __FILENAME__ (__builtin_strrchr(__FILE__, '\\') ? __builtin_strrchr(__FILE__, '\\') + 1 : __FILE__)
@@ -16,11 +17,14 @@
 #define true  1
 #define false 0
 #define bool int
-#define byte_t uint8_t
+#define byte_t char
 #define B_SIZE sizeof(byte)
 
 
 void log_info(const char *file_name, const char *function_name, size_t line, const char *fmt, ...);
 
+uint32_t min(uint32_t x, uint32_t y);
+
+uint32_t max(uint32_t x, uint32_t y);
 
 #endif

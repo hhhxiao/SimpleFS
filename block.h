@@ -11,7 +11,7 @@
 #include <stddef.h>
 
 /**
- *
+ *超级块
  */
 struct super_block_t {
     uint32_t magic_number;
@@ -27,20 +27,33 @@ struct super_block_t {
     uint32_t disk_size;
 };
 
-
+/**
+ * 数据块元数据
+ */
 struct block_info_t {
     bool occupied;
+    uint16_t space_used;
     uint32_t number;
     uint32_t inode_number;
 };
+
+/*
+ * 数据块
+ */
 struct data_block_t {
     struct block_info_t info;
     byte_t data[DATA_BLOCK_SIZE];
 };
 
+struct dir_entry_t {
+    char dir_name[96];
+    uint32_t inode_number;
+};
+
 typedef struct super_block_t super_block_t;
 typedef struct data_block_t data_block_t;
 typedef struct block_info_t block_info_t;
+typedef struct dir_entry_t dir_entry_t;
 #define SUPER_BLOCK_SIZE sizeof(super_block_t)
 
 bool super_block_valid(super_block_t *sb);
@@ -50,6 +63,9 @@ void block_init(data_block_t *block);
 bool block_dump(data_block_t *block);
 
 bool super_block_dump(super_block_t *super_block);
+
+//向数据块写数据，返回写入的文件长度
+int block_write_content(data_block_t *block, const byte_t *data, size_t len);
 
 inode_pointer_t *block_to_inode_poiner_list(data_block_t *block);
 

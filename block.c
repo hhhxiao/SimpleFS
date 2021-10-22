@@ -31,6 +31,7 @@ void block_init(data_block_t *block) {
     block->info.occupied = false;
     block->info.number = -1;
     block->info.inode_number = -1;
+    block->info.space_used = 0;
     for (int i = 0; i < DATA_BLOCK_SIZE; i++) {
         block->data[i] = 0;
     }
@@ -76,5 +77,17 @@ bool super_block_dump(super_block_t *super_block) {
         return false;
     }
     return true;
+}
 
+int block_write_content(data_block_t *block, const byte_t *data, size_t len) {
+    int res = (int) min(len, DATA_BLOCK_SIZE - block->info.space_used);
+    int idx_b = block->info.space_used;
+    int idx_d = 0;
+    for (int i = 0; i < res; i++) {
+        block->data[idx_b] = data[idx_d];
+        ++idx_b;
+        ++idx_d;
+    }
+    block->info.space_used += res;
+    return res;
 }
