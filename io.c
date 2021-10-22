@@ -3,6 +3,7 @@
 //
 
 #include "io.h"
+#include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
 
@@ -13,7 +14,7 @@ inode_pointer_t *inode_get_pointer(inode_t *inode, uint32_t index, disk_t *disk)
     if (index >= MAX_BLOCK_DIRECT + MAX_BLOCK_SIGNY + MAX_BLOCK_DOUBLY) {
         return NULL;
     }
-    int max_used_block = MAX_BLOCK_SIGNY;
+    int max_used_block = MAX_BLOCK_DIRECT;
     if (index < max_used_block) {
         return inode->direct + index;
     }
@@ -72,7 +73,7 @@ uint32_t inode_add_new_block(inode_t *inode, disk_t *disk) {
     if (inode == NULL) {
         return -1;
     }
-    inode_pointer_t *p = inode_get_pointer(inode, inode->block_used + 1, disk);
+    inode_pointer_t *p = inode_get_pointer(inode, inode->block_used, disk);
     if (p == NULL) {
         return -1;
     }
@@ -115,11 +116,57 @@ int inode_write_content(inode_t *inode, disk_t *disk, const byte_t *byte, size_t
         assert(last_block != NULL);
         //向数据块写数据
         write_len += block_write_content(last_block, byte + write_len, len - write_len);
+        if (write_len >= len) {
+            break;
+        }
         last_block_idx = (int) inode_add_new_block(inode, disk);
         if (last_block_idx == -1) {
             ERR("disk space is not enough");
+            inode->file_size += write_len;
             return false;
         }
     }
+
+    inode->file_size += write_len;
+    return true;
+}
+
+
+byte_t *inode_read_all_content(inode_t *inode, disk_t *disk, size_t *len) {
+    const size_t file_size = inode->file_size;
+    *len = file_size;
+    byte_t *byte = (byte_t *) malloc(file_size * sizeof(byte));
+    int block_idx = 0;
+    int w_idx = 0;
+    while (block_idx < inode->block_used) {
+        inode_pointer_t bid = inode_get_block(inode, block_idx, disk);
+        if (bid == -1) {
+            ERR("disk was destroyed\n");
+            return NULL;
+        }
+        data_block_t *b = disk_fetch_block(disk, (int) bid);
+        if (b == NULL || b->info.occupied == false) {
+            ERR("disk was destroyed\n");
+            return NULL;
+        }
+        for (int i = 0; i < b->info.space_used; i++) {
+            byte[i + w_idx] = b->data[i];
+        }
+        w_idx += b->info.space_used;
+        ++block_idx;
+    }
+    return byte;
+}
+
+bool create_root_dir(disk_t *disk) {
+    inode_t *inode = disk_fetch_inode(disk, 0);
+    if (inode == NULL || inode->occupied == true) {
+        ERR("can not create root dir");
+        return false;
+    }
+
+    dir_entry_t dir_entry;
+    create_dir_entry(&dir_entry, "/", 0);
+    inode_write_content(inode, disk, (byte_t *) &dir_entry, sizeof(dir_entry));
     return true;
 }

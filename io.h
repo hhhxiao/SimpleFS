@@ -19,8 +19,11 @@ inode_pointer_t *inode_get_pointer(inode_t *inode, uint32_t index, disk_t *disk)
 uint32_t inode_add_new_block(inode_t *inode, disk_t *disk);
 
 int inode_write_content(inode_t *inode, disk_t *disk, const byte_t *byte, size_t len);
-//bool create_root_dir(disk_t *disk);
 
-//bool create_directory(disk_t *disk, const char *name);
+//一次性读出这个inode的全部内容
+byte_t *inode_read_all_content(inode_t *inode, disk_t *disk, size_t *len);
+
+
+bool create_root_dir(disk_t *disk);
 
 #endif //SIMFS_IO_H

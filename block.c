@@ -51,7 +51,8 @@ bool block_dump(data_block_t *block) {
         ERR("got a nullptr of data_block_t");
         return false;
     }
-    printf("Data block: %d    Inode: %d\n", block->info.number, block->info.inode_number);
+    printf("Data block: %d    Inode: %d Space: %d\n", block->info.number, block->info.inode_number,
+           block->info.space_used);
     return true;
 }
 
@@ -90,4 +91,16 @@ int block_write_content(data_block_t *block, const byte_t *data, size_t len) {
     }
     block->info.space_used += res;
     return res;
+}
+
+bool create_dir_entry(dir_entry_t *dir_entry, const char *file_name, uint32_t inode_index) {
+    size_t len = strlen(file_name);
+    if (len >= 124) {
+        return false;
+    }
+    for (int i = 0; i < len; i++) {
+        dir_entry->dir_name[i] = file_name[i];
+        dir_entry->dir_name[123] = 0;
+    }
+    return true;
 }

@@ -46,7 +46,7 @@ struct data_block_t {
 };
 
 struct dir_entry_t {
-    char dir_name[96];
+    char dir_name[124];
     uint32_t inode_number;
 };
 
@@ -69,5 +69,6 @@ int block_write_content(data_block_t *block, const byte_t *data, size_t len);
 
 inode_pointer_t *block_to_inode_poiner_list(data_block_t *block);
 
+bool create_dir_entry(dir_entry_t *dir_entry, const char *file_name, uint32_t inode_index);
 
 #endif //SIMFS_BLOCK_H

@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include "block.h"
 #include "inode.h"
+#include <assert.h>
 
 
 static void init_super_block(super_block_t *super_block) {
@@ -55,6 +56,7 @@ int disk_init(disk_t *disk, uint32_t disk_size) {
         return false;
     }
 
+    assert(sizeof(struct dir_entry_t) == 128);
     init_super_block(&disk->sb);
 
     super_block_t *super_block = &disk->sb;
@@ -175,10 +177,11 @@ bool disk_save(disk_t *disk, const char *file_name) {
 
     fwrite(&disk->sb, sizeof(super_block_t), 1, fp);
     fwrite(disk->inode_list, sizeof(inode_t), disk->sb.total_i_cnt, fp);
-    for (int i = 0; i < disk->sb.total_i_cnt; i++)
+    for (int i = 0; i < disk->sb.total_b_cnt; i++) {
         fwrite(&disk->data_block_list[i].info, sizeof(block_info_t), 1, fp);
+    }
 
-    for (int i = 0; i < disk->sb.total_i_cnt; i++)
+    for (int i = 0; i < disk->sb.total_b_cnt; i++)
         fwrite(disk->data_block_list[i].data, DATA_BLOCK_SIZE, disk->sb.total_b_cnt, fp);
     fclose(fp);
     return true;
