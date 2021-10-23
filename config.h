@@ -22,4 +22,5 @@ typedef uint32_t inode_pointer_t;
 #define INODE_SPACE_RATIO 0.01
 #define MAGIC_NUMBER 0x1234
 #define  MAX_DIR_NAME 95
+#define ROOT_DIR_INODE 0
 #endif //SIMFS_CONFIG_H

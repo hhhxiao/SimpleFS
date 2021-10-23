@@ -53,3 +53,4 @@ dkms.confs
 cmake-build-debug
 .idea
 .idea/*
+cmake-build-release

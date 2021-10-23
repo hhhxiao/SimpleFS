@@ -5,7 +5,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#define DEBUG 1
+//#define DEBUG 1
 #ifdef WIN32
 #define __FILENAME__ (__builtin_strrchr(__FILE__, '\\') ? __builtin_strrchr(__FILE__, '\\') + 1 : __FILE__)
 #else

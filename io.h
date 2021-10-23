@@ -23,7 +23,10 @@ int inode_write_content(inode_t *inode, disk_t *disk, const byte_t *byte, size_t
 //一次性读出这个inode的全部内容
 byte_t *inode_read_all_content(inode_t *inode, disk_t *disk, size_t *len);
 
+bool create_empty_file(disk_t *disk, const char *file_name);
 
-bool create_root_dir(disk_t *disk);
+bool disk_format(disk_t *disk, uint32_t size);
 
+
+dir_entry_t *disk_get_file_list(disk_t *disk, size_t *num);
 #endif //SIMFS_IO_H

@@ -182,16 +182,15 @@ bool disk_save(disk_t *disk, const char *file_name) {
     }
 
     for (int i = 0; i < disk->sb.total_b_cnt; i++)
-        fwrite(disk->data_block_list[i].data, DATA_BLOCK_SIZE, disk->sb.total_b_cnt, fp);
+        fwrite(disk->data_block_list[i].data, DATA_BLOCK_SIZE, 1, fp);
     fclose(fp);
     return true;
 }
 
 bool disk_load(disk_t *disk, const char *file_name) {
     if (disk->data_block_list != NULL || disk->inode_list != NULL) {
-        INFO("the data in disk will be erase");
+        LOG("the data in disk will be erase\n");
     }
-
     FILE *fp = fopen(file_name, "r");
     if (fp == NULL) {
         ERR("can not open file %s", file_name);

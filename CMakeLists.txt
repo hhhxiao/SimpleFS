@@ -10,5 +10,7 @@ add_executable(
         block.c
         config.h
         inode.c
-        io.c io.h user.c user.h)
+        io.c io.h
+        shell.c
+        shell.h)
 

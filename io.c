@@ -111,7 +111,6 @@ int inode_write_content(inode_t *inode, disk_t *disk, const byte_t *byte, size_t
         last_block_idx = (int) inode_add_new_block(inode, disk);
     }
     while (write_len < len) {
-        LOG("%d", last_block_idx);
         data_block_t *last_block = disk_fetch_block(disk, last_block_idx);
         assert(last_block != NULL);
         //向数据块写数据
@@ -156,17 +155,69 @@ byte_t *inode_read_all_content(inode_t *inode, disk_t *disk, size_t *len) {
         ++block_idx;
     }
     return byte;
+
 }
 
+
 bool create_root_dir(disk_t *disk) {
-    inode_t *inode = disk_fetch_inode(disk, 0);
+    inode_t *inode = disk_fetch_inode(disk, ROOT_DIR_INODE);
     if (inode == NULL || inode->occupied == true) {
         ERR("can not create root dir");
         return false;
     }
-
+    inode->occupied = true;
+    inode->mode.file_type = Dir;
     dir_entry_t dir_entry;
-    create_dir_entry(&dir_entry, "/", 0);
+    dir_entry_init(&dir_entry, ".", 0);
     inode_write_content(inode, disk, (byte_t *) &dir_entry, sizeof(dir_entry));
+    dir_entry_init(&dir_entry, "..", 0);
+    inode_write_content(inode, disk, (byte_t *) &dir_entry, sizeof(dir_entry));
+    inode->cnt_file_num += 2;
     return true;
+}
+
+bool disk_format(disk_t *disk, uint32_t size) {
+    return disk_init(disk, size) && create_root_dir(disk);
+}
+
+dir_entry_t *disk_get_file_list(disk_t *disk, size_t *num) {
+    inode_t *inode = disk_fetch_inode(disk, ROOT_DIR_INODE);
+    size_t len = 0;
+    byte_t *b = inode_read_all_content(inode, disk, &len);
+    uint32_t cnt = len / sizeof(dir_entry_t);
+    assert(cnt == inode->cnt_file_num);
+    assert(len % sizeof(dir_entry_t) == 0);
+    *num = cnt;
+    return (dir_entry_t *) b;
+}
+
+
+bool create_empty_file(disk_t *disk, const char *file_name) {
+    if (disk == NULL) {
+        return false;
+    }
+    size_t num = 0;
+    dir_entry_t *dir = disk_get_file_list(disk, &num);
+    for (int i = 0; i < num; i++) {
+        if (strcmp(file_name, dir[num].dir_name) == 0) {
+            ERR("file already exists");
+            return false;
+        }
+    }
+
+    //assign inode
+    int node = disk_assign_inode(disk);
+    dir_entry_t entry;
+    if (node > 0 && dir_entry_init(&entry, file_name, node)) {
+        inode_t *root_node = disk_fetch_inode(disk, ROOT_DIR_INODE);
+        if (inode_write_content(root_node, disk, (byte_t *) &entry,
+                                sizeof(dir_entry_t))) {
+            root_node->cnt_file_num++;
+            inode_t *file_node = disk_fetch_inode(disk, node);
+            file_node->mode.file_type = Normal;
+            return true;
+        }
+    }
+    free(dir);
+    return false;
 }

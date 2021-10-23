@@ -47,9 +47,9 @@ bool inode_dump(inode_t *inode) {
         return true;
     }
 
-    printf("Blocks: %d    Size: %u   Type %d\n", inode->block_used, inode->file_size, inode->mode.file_type);
-    printf("Inode number: %d    Links: %d\n", inode->number, inode->links);
-    printf("Permission: (%d%d%d)   Uid: %d    Gid: %d\n", inode->mode.up, inode->mode.gp, inode->mode.ap, inode->uid,
+    printf("Blocks: %d  File Size: %u FileType: %c\n", inode->block_used, inode->file_size, inode->mode.file_type);
+    printf("Inode number: %d  Links: %d\n", inode->number, inode->links);
+    printf("Permission: (%d%d%d) Uid: %d  Gid: %d\n", inode->mode.up, inode->mode.gp, inode->mode.ap, inode->uid,
            inode->gid);
     //todo time print
     return true;

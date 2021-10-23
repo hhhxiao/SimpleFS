@@ -12,14 +12,14 @@
 
 
 enum FILETYPE {
-    None = -1,
-    Normal = 0,
-    Dir = 1,
-    Charctor = 2,
-    Block = 3,
-    Socket = 4,
-    Pipe = 5,
-    Link = 6
+    None = '?',
+    Normal = '-',
+    Dir = 'd',
+    Charctor = 'c',
+    Block = 'b',
+    Socket = 's',
+    Pipe = 'p',
+    Link = 'l'
 };
 
 struct file_mode_t {
@@ -42,7 +42,7 @@ struct inode_t {
     uint8_t links;
     inode_pointer_t direct[INODE_DIRECT_NUM];
     uint32_t block_used;
-    uint16_t dir_cnt;
+    uint16_t cnt_file_num;
     inode_pointer_t singly;
     inode_pointer_t doubly;
     inode_pointer_t triple;

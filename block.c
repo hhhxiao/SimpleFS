@@ -53,6 +53,10 @@ bool block_dump(data_block_t *block) {
     }
     printf("Data block: %d    Inode: %d Space: %d\n", block->info.number, block->info.inode_number,
            block->info.space_used);
+    for (int i = 0; i < min(block->info.space_used, 128u); i++) {
+        printf("%c", block->data[i]);
+    }
+    printf("\n");
     return true;
 }
 
@@ -93,7 +97,8 @@ int block_write_content(data_block_t *block, const byte_t *data, size_t len) {
     return res;
 }
 
-bool create_dir_entry(dir_entry_t *dir_entry, const char *file_name, uint32_t inode_index) {
+bool dir_entry_init(dir_entry_t *dir_entry, const char *file_name, uint32_t inode_index) {
+    memset(dir_entry, 0, sizeof(dir_entry_t));
     size_t len = strlen(file_name);
     if (len >= 124) {
         return false;
@@ -102,5 +107,6 @@ bool create_dir_entry(dir_entry_t *dir_entry, const char *file_name, uint32_t in
         dir_entry->dir_name[i] = file_name[i];
         dir_entry->dir_name[123] = 0;
     }
+    dir_entry->inode_number = inode_index;
     return true;
 }
